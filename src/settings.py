@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
     #local apps
     'shop',
+    'authentication',
 
     #Third-party
     'rest_framework',
@@ -127,3 +128,5 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_USER_MODEL = 'authentication.CustomUser'
