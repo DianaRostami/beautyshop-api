@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Q, F
+from django.db.models import Q, F, When, DecimalField, Case, Value
 from decimal import Decimal
 
 
@@ -17,23 +17,21 @@ class Product(models.Model):
     stock = models.PositiveIntegerField(default=0)
     is_available = models.BooleanField(default=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
-    discount = models.PositiveIntegerField(default=0)
+    discount = models.PositiveIntegerField(default=0)  # discount in percentage
 
     objects = models.Manager()  # Use custom manager
 
     def __str__(self):
         return self.name
 
-    def final_price(self):
-        if self.discount != 0:
-            return self.price - (self.price * Decimal(self.discount) / 100)
-        return self.price
-
-    #TODO: study this func
-    def decrease_stock(self, quantity):
+    def apply_discount(self, discount_percentage):
+        if discount_percentage > 0:
+            self.objects.filter(id=self.id).update(
+                price=F('price') * (Decimal(discount_percentage) / Decimal(100))
+            )
+    def update_quantity(self, quantity):
         if self.stock >= quantity:
-            Product.objects.filter(id=self.id, stock__gte=quantity).update(stock=F('stock') - quantity)
-
+            self.objects.filter(id=self.id).update(price=F('price') - quantity)
 
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -50,10 +48,6 @@ class Order(models.Model):
 
     def __str__(self):
         return f"order {self.id} - {self.customer_name} - {self.status}"
-
-
-class User(models.Model):
-    pass
 
 
 # for search better
